@@ -1,4 +1,6 @@
 from langchain_community.document_loaders import PyMuPDFLoader
+import pandas as pd
+import csv
 
 # Load your PDFs
 pdf_loader = PyMuPDFLoader("/Users/fch/Python/LLM-RAG/VerilogTextBooks/CernyDudani-SVA- The Power of Assertions in SystemVerilog.pdf")
@@ -27,7 +29,7 @@ embeddings = OpenAIEmbeddings(openai_api_key="")
 # Index the document chunks in a vector store
 vector_store = FAISS.from_texts([chunk.page_content for chunk in chunks], embeddings)
 
-retriever = vector_store.as_retriever()
+retriever = vector_store.as_retriever(search_kwargs={'k': 3})
 
 # from langchain.llms import OpenAI
 from langchain_openai import ChatOpenAI
@@ -40,8 +42,18 @@ llm = ChatOpenAI(
 
 qa_chain = RetrievalQA.from_chain_type(llm, retriever=retriever)
 
+df = pd.read_csv('asserted-verilog-evaluation-dataset.csv')
 # Run a query
-query = "Can you give some important definition about assertions from the PDF documents?"
-response = qa_chain.run(query)
+with open('Langchain-RAG-eval-results.csv', 'a', newline='') as csv_file:
+    csv_writer = csv.writer(csv_file)
+    # csv_writer.writerow(['code','HumanExplanation','pure code','prompt','llm_response'])
+    for id in range(25, len(df)):
+        code = df.iloc[id]['code']
+        humanexplanation = df.iloc[id]['HumanExplanation']
+        purecode = df.iloc[id]['pure code']
+        prompt = "Given Verilog code snippet as below: \n" + purecode + "\n Please generate a rewritten version of it, which contains some useful assertions for verification. \n"
+        
 
-print(response)
+        llm_response = qa_chain.run(prompt)
+
+        csv_writer.writerow([code,humanexplanation,purecode,prompt,llm_response])

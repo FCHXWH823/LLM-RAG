@@ -32,7 +32,13 @@ eval_num = 100
 
 df = pd.read_csv('asserted-verilog-evaluation-dataset.csv')
 
-
+# completion = client.chat.completions.create(
+#         model=model_name,
+#         messages=[
+#             {"role": "user", "content": "Can you give some important definition about assertions from the PDF documents?"}
+#         ]
+#     )
+# print(completion.choices[0].message.content)
 
 with open('eval-results.csv', 'w', newline='') as csv_file:
     csv_writer = csv.writer(csv_file)
