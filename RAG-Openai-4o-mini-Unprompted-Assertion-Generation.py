@@ -28,6 +28,13 @@ embeddings = OpenAIEmbeddings(openai_api_key="")
 
 # Index the document chunks in a vector store
 vector_store = FAISS.from_texts([chunk.page_content for chunk in chunks], embeddings)
+vector_store.save_local("./RAG_Database/")
+example_chunks = vector_store.docstore._dict.values()
+for i, chunk in enumerate(example_chunks):
+    print(f"Chunk {i+1}:\n{chunk.page_content}\n")
+
+    # if i >= 100:  # Display only the first 5 chunks
+    #     break
 
 retriever = vector_store.as_retriever(search_kwargs={'k': 3})
 
